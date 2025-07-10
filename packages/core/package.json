@@ -1,0 +1,58 @@
+{
+  "name": "cushion",
+  "version": "0.0.1-alpha.0",
+  "description": "Absorb the chaos, keep the peace - External change cushioning middleware",
+  "keywords": [
+    "cushion",
+    "api",
+    "transform",
+    "absorb",
+    "middleware",
+    "comfort"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./core": {
+      "import": "./dist/core.js",
+      "types": "./dist/core.d.ts"
+    },
+    "./absorb": {
+      "import": "./dist/absorb.js",
+      "types": "./dist/absorb.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:comfort": "vitest --reporter=verbose",
+    "type-check": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --apply .",
+    "publint": "publint"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "jsdom": "^26.1.0",
+    "publint": "^0.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

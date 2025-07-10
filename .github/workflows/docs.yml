@@ -1,0 +1,41 @@
+name: Deploy Cushion Docs
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/docs/**']
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛏️ Checkout Comfort Docs
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: 🏃 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: 💤 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build Cushion
+        run: pnpm run build
+
+      - name: 📚 Build comfort docs
+        run: cd apps/docs && pnpm run build
+
+      - name: 🌍 Deploy to Vercel
+        uses: vercel/actions@v5.0.0
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: apps/docs
