@@ -1,6 +1,7 @@
 # Cushion 2025 최신 스택 배포 가이드 🛏️
 
 ## 🎯 프로젝트 개요
+
 - **라이브러리**: Cushion - "Absorb the chaos, keep the peace"
 - **목적**: 외부 변화를 흡수하여 코드의 편안함과 안정성 제공
 - **타겟**: NPM 배포 + 문서 사이트 + 플레이그라운드 + 예제 갤러리
@@ -11,24 +12,28 @@
 ## 📦 기술 스택 선택 (2025 최신)
 
 ### **개발 환경 - "편안한 개발을 위한 최고의 도구들"**
+
 - **패키지 매니저**: `pnpm` (2025 표준, 빠르고 효율적)
 - **모노레포**: `Turborepo` (Vercel 제작, 최고 성능)
 - **TypeScript**: `v5.7+` (최신 기능으로 타입 안전성 극대화)
 - **번들러**: `Tsup` (esbuild 기반, 초고속 번들링)
 
 ### **테스트 & 품질 - "완벽한 쿠션을 위한 품질 보장"**
+
 - **테스트**: `Vitest` (Jest 대체, Vite 기반 초고속)
 - **E2E**: `Playwright` (2025 표준, 실제 브라우저 테스트)
 - **린터**: `Biome` (ESLint + Prettier 대체, Rust 기반 초고속)
 - **타입체크**: `TypeScript` + `publint` (패키지 검증)
 
 ### **배포 & CI/CD - "자동화된 편안함"**
+
 - **CI/CD**: `GitHub Actions` + `Changesets` (자동 버전 관리)
 - **NPM 배포**: 완전 자동화된 릴리즈
 - **문서**: `VitePress` (Vue 기반, 가장 빠름)
 - **데모**: `StackBlitz` + `CodeSandbox` 연동
 
 ### **호스팅 - "전세계 편안함 제공"**
+
 - **NPM**: 공식 레지스트리
 - **문서 사이트**: `Vercel` (무료, 자동 배포)
 - **플레이그라운드**: `Netlify` (빠른 static 호스팅)
@@ -117,9 +122,9 @@ pnpm add -D vitest @vitest/coverage-v8 publint
 ```yaml
 # pnpm-workspace.yaml
 packages:
-  - 'packages/*'
-  - 'apps/*'  
-  - 'tools/*'
+  - "packages/*"
+  - "apps/*"
+  - "tools/*"
 ```
 
 ### **Step 3: 핵심 Cushion 라이브러리 설정**
@@ -143,7 +148,14 @@ cd ../..
   "name": "cushion",
   "version": "0.0.1-alpha.0",
   "description": "Absorb the chaos, keep the peace - External change cushioning middleware",
-  "keywords": ["cushion", "api", "transform", "absorb", "middleware", "comfort"],
+  "keywords": [
+    "cushion",
+    "api",
+    "transform",
+    "absorb",
+    "middleware",
+    "comfort"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -158,7 +170,7 @@ cd ../..
       "types": "./dist/core.d.ts"
     },
     "./absorb": {
-      "import": "./dist/absorb.js", 
+      "import": "./dist/absorb.js",
       "types": "./dist/absorb.d.ts"
     }
   },
@@ -190,23 +202,23 @@ cd ../..
 
 ```typescript
 // packages/core/tsup.config.ts
-import { defineConfig } from 'tsup'
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ['src/index.ts', 'src/core.ts', 'src/absorb.ts'],
-  format: ['esm', 'cjs'],
+  entry: ["src/index.ts", "src/core.ts", "src/absorb.ts"],
+  format: ["esm", "cjs"],
   dts: true,
   clean: true,
   minify: true,
   treeshake: true,
   splitting: false,
   sourcemap: true,
-  target: 'es2022',
+  target: "es2022",
   external: [],
   banner: {
-    js: '// Cushion 🛏️ - Absorb the chaos, keep the peace'
-  }
-})
+    js: "// Cushion 🛏️ - Absorb the chaos, keep the peace",
+  },
+});
 ```
 
 ### **Step 4: 편안한 품질 도구 설정**
@@ -243,7 +255,7 @@ export default defineConfig({
   },
   "typescript": {
     "formatter": {
-      "quoteStyle": "single", 
+      "quoteStyle": "single",
       "trailingCommas": "es5"
     }
   }
@@ -252,26 +264,26 @@ export default defineConfig({
 
 ```typescript
 // vitest.config.ts
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: "jsdom",
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
       threshold: {
         global: {
           branches: 80,
           functions: 80,
           lines: 80,
-          statements: 80
-        }
-      }
-    }
-  }
-})
+          statements: 80,
+        },
+      },
+    },
+  },
+});
 ```
 
 ### **Step 5: 편안한 문서 사이트 (VitePress)**
@@ -294,46 +306,46 @@ cd ../..
 
 ```typescript
 // apps/docs/.vitepress/config.ts
-import { defineConfig } from 'vitepress'
+import { defineConfig } from "vitepress";
 
 export default defineConfig({
-  title: 'Cushion',
-  description: 'Absorb the chaos, keep the peace',
-  base: '/cushion/',
-  
+  title: "Cushion",
+  description: "Absorb the chaos, keep the peace",
+  base: "/cushion/",
+
   themeConfig: {
     nav: [
-      { text: 'Guide', link: '/guide/' },
-      { text: 'API', link: '/api/' },
-      { text: 'Examples', link: '/examples/' },
-      { text: 'Playground', link: '/playground/' }
+      { text: "Guide", link: "/guide/" },
+      { text: "API", link: "/api/" },
+      { text: "Examples", link: "/examples/" },
+      { text: "Playground", link: "/playground/" },
     ],
-    
+
     sidebar: {
-      '/guide/': [
-        { text: 'Getting Comfortable', link: '/guide/' },
-        { text: 'Basic Cushioning', link: '/guide/basic-usage' },
-        { text: 'Advanced Comfort', link: '/guide/advanced' },
-        { text: 'Comfort Plugins', link: '/guide/plugins' }
-      ]
+      "/guide/": [
+        { text: "Getting Comfortable", link: "/guide/" },
+        { text: "Basic Cushioning", link: "/guide/basic-usage" },
+        { text: "Advanced Comfort", link: "/guide/advanced" },
+        { text: "Comfort Plugins", link: "/guide/plugins" },
+      ],
     },
-    
+
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/username/cushion' }
+      { icon: "github", link: "https://github.com/username/cushion" },
     ],
 
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2025 Cushion 🛏️'
-    }
+      message: "Released under the MIT License.",
+      copyright: "Copyright © 2025 Cushion 🛏️",
+    },
   },
 
   vite: {
     optimizeDeps: {
-      include: ['cushion']
-    }
-  }
-})
+      include: ["cushion"],
+    },
+  },
+});
 ```
 
 ### **Step 6: 자동 편안함 배포 (GitHub Actions)**
@@ -354,30 +366,30 @@ jobs:
     steps:
       - name: 🛏️ Checkout Cushion
         uses: actions/checkout@v4
-      
+
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
-          
+
       - name: 🏃 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-          
+          cache: "pnpm"
+
       - name: 💤 Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: 🏗️ Build Cushion
         run: pnpm run build
-      
+
       - name: 🧪 Test Comfort
         run: pnpm run test
-      
+
       - name: ✨ Lint Comfort
         run: pnpm run lint
-      
+
       - name: 🔍 Check Types
         run: pnpm run type-check
 
@@ -390,25 +402,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: 📦 Setup pnpm  
+
+      - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
-          
+
       - name: 🏃 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
-          
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
       - name: 💤 Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: 🏗️ Build for comfort
         run: pnpm run build
-      
+
       - name: 🚀 Release Comfort
         uses: changesets/action@v1
         with:
@@ -425,7 +437,7 @@ name: Deploy Comfort Docs
 on:
   push:
     branches: [main]
-    paths: ['apps/docs/**']
+    paths: ["apps/docs/**"]
 
 jobs:
   deploy-docs:
@@ -433,27 +445,27 @@ jobs:
     steps:
       - name: 🛏️ Checkout Comfort Docs
         uses: actions/checkout@v4
-      
+
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
-          
+
       - name: 🏃 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-          
+          cache: "pnpm"
+
       - name: 💤 Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: 🏗️ Build Cushion
         run: pnpm run build
-        
+
       - name: 📚 Build comfort docs
         run: cd apps/docs && pnpm run build
-        
+
       - name: 🌍 Deploy to Vercel
         uses: vercel/action@v1
         with:
@@ -510,6 +522,7 @@ cd ../..
 ```
 
 **만약 워크스페이스 참조가 안 되면:**
+
 ```bash
 # 대안 1: 상대 경로로 참조
 pnpm add ../packages/core
@@ -520,19 +533,19 @@ pnpm add ../packages/core
 
 ```typescript
 // apps/playground/vite.config.ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3001
-  }
-})
+    port: 3001,
+  },
+});
 ```
 
 ```json
-// apps/playground/package.json  
+// apps/playground/package.json
 {
   "name": "@cushion/playground",
   "private": true,
@@ -540,7 +553,7 @@ export default defineConfig({
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build", 
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -582,46 +595,44 @@ cd apps/playground
 
 ```typescript
 // apps/playground/src/App.tsx
-import { useState } from 'react'
-import { setupCushion, absorb } from 'cushion'
+import { useState } from "react";
+import { setupCushion, absorb } from "cushion";
 
 export default function CushionPlayground() {
   const [serverData, setServerData] = useState(`{
   "username": "john_doe",
   "user_email": "john@example.com", 
   "user_age": 25
-}`)
+}`);
 
   const [cushioning, setCushioning] = useState(`{
   "name": "username",
   "email": "user_email",
   "age": "user_age"
-}`)
+}`);
 
-  const [result, setResult] = useState('')
+  const [result, setResult] = useState("");
 
   const handleAbsorb = () => {
     try {
-      const data = JSON.parse(serverData)
-      const cushionConfig = JSON.parse(cushioning)
-      const comfortable = absorb(data, cushionConfig)
-      setResult(JSON.stringify(comfortable, null, 2))
+      const data = JSON.parse(serverData);
+      const cushionConfig = JSON.parse(cushioning);
+      const comfortable = absorb(data, cushionConfig);
+      setResult(JSON.stringify(comfortable, null, 2));
     } catch (error) {
-      setResult(`Comfort Error: ${error.message}`)
+      setResult(`Comfort Error: ${error.message}`);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto p-8 max-w-6xl">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4">
-          Cushion Playground 🛏️
-        </h1>
+        <h1 className="text-4xl font-bold mb-4">Cushion Playground 🛏️</h1>
         <p className="text-xl text-gray-600">
           Experience the comfort of absorbing external chaos
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="space-y-4">
           <label className="block text-sm font-medium text-gray-700">
@@ -634,7 +645,7 @@ export default function CushionPlayground() {
             placeholder="Enter chaotic server data..."
           />
         </div>
-        
+
         <div className="space-y-4">
           <label className="block text-sm font-medium text-gray-700">
             🛏️ Cushion Configuration
@@ -647,7 +658,7 @@ export default function CushionPlayground() {
           />
         </div>
       </div>
-      
+
       <div className="text-center mb-6">
         <button
           onClick={handleAbsorb}
@@ -656,16 +667,16 @@ export default function CushionPlayground() {
           🛏️ Absorb the Chaos
         </button>
       </div>
-      
+
       <div className="space-y-4">
         <label className="block text-sm font-medium text-gray-700">
           ✨ Comfortable Result
         </label>
         <pre className="w-full p-4 bg-green-50 border-2 border-green-200 rounded-lg overflow-auto font-mono text-sm min-h-32">
-          {result || '// Your comfortable data will appear here...'}
+          {result || "// Your comfortable data will appear here..."}
         </pre>
       </div>
-      
+
       <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
         <h3 className="text-lg font-semibold text-blue-900 mb-2">
           💡 Comfort Tips
@@ -677,13 +688,14 @@ export default function CushionPlayground() {
         </ul>
       </div>
     </div>
-  )
+  );
 }
 ```
 
 ## 📋 완전한 패키지 설치 체크리스트
 
 ### **루트 프로젝트 의존성**
+
 ```bash
 # 필수 루트 의존성
 pnpm add -D @biomejs/biome @changesets/cli turbo typescript
@@ -691,6 +703,7 @@ pnpm add -D vitest @vitest/coverage-v8 publint
 ```
 
 ### **packages/core 의존성**
+
 ```bash
 cd packages/core
 pnpm add -D tsup typescript @types/node vitest @vitest/coverage-v8
@@ -698,12 +711,14 @@ pnpm add -D publint @biomejs/biome
 ```
 
 ### **apps/docs 의존성**
+
 ```bash
-cd apps/docs  
+cd apps/docs
 pnpm add -D vitepress vue @types/node
 ```
 
 ### **apps/playground 의존성**
+
 ```bash
 cd apps/playground
 pnpm add react react-dom cushion
@@ -712,24 +727,26 @@ pnpm add -D typescript tailwindcss postcss autoprefixer
 ```
 
 ### **선택적 플러그인 패키지들**
+
 ```bash
 # packages/react (React 훅)
 cd packages/react
 pnpm add react cushion
 pnpm add -D @types/react typescript tsup
 
-# packages/vue (Vue 컴포저블)  
+# packages/vue (Vue 컴포저블)
 cd packages/vue
 pnpm add vue cushion
 pnpm add -D typescript tsup
 
 # packages/zod (Zod 통합)
 cd packages/zod
-pnpm add zod cushion  
+pnpm add zod cushion
 pnpm add -D typescript tsup
 ```
 
 ### **개발 환경 - 편안한 개발**
+
 ```bash
 # 전체 편안함 개발 서버
 pnpm dev
@@ -749,6 +766,7 @@ pnpm type-check
 ```
 
 ### **빌드 & 배포 - 세상에 편안함 전파**
+
 ```bash
 # 편안함 빌드
 pnpm build
@@ -771,6 +789,7 @@ git push origin main
 ## 📊 편안함 성능 & 품질 관리
 
 ### **편안함 번들 크기 모니터링**
+
 ```json
 // package.json scripts 추가
 {
@@ -783,12 +802,14 @@ git push origin main
 ```
 
 ### **편안함 품질 게이트**
+
 - **테스트 커버리지**: 80% 이상 (편안함 보장)
 - **번들 크기**: 15KB 이하 (가벼운 편안함)
 - **타입 커버리지**: 100% (완벽한 편안함)
 - **린트 에러**: 0개 (깔끔한 편안함)
 
 ### **편안함 모니터링 대시보드**
+
 - **NPM 다운로드**: npmtrends.com/cushion
 - **번들 크기**: bundlephobia.com/package/cushion
 - **GitHub 통계**: ⭐ 스타, 🍴 포크, 🐛 이슈
@@ -799,6 +820,7 @@ git push origin main
 ## 🎯 편안함 배포 체크리스트
 
 ### **편안함 배포 전 확인사항**
+
 - [ ] 🧪 모든 편안함 테스트 통과
 - [ ] 🔍 타입 에러 없음 (완벽한 편안함)
 - [ ] ✨ 린팅 에러 없음 (깔끔한 편안함)
@@ -808,6 +830,7 @@ git push origin main
 - [ ] 🏷️ 버전 번호 확인
 
 ### **편안함 배포 후 확인사항**
+
 - [ ] 📦 NPM 패키지 정상 설치
 - [ ] 📚 편안함 문서 사이트 정상 동작
 - [ ] 🎮 편안함 플레이그라운드 정상 동작
@@ -822,6 +845,7 @@ git push origin main
 ### **자주 발생하는 편안함 문제들**
 
 **1. pnpm 편안함 설치 문제**
+
 ```bash
 # Node.js 편안함 버전 확인
 node -v  # 20+ 필요 (편안한 버전)
@@ -831,6 +855,7 @@ npm install -g pnpm@latest
 ```
 
 **2. Turborepo 편안함 캐시 문제**
+
 ```bash
 # 편안함 캐시 클리어
 pnpm turbo clean
@@ -838,6 +863,7 @@ rm -rf node_modules/.cache
 ```
 
 **3. TypeScript 편안함 빌드 에러**
+
 ```bash
 # 편안함 의존성 다시 설치
 rm -rf node_modules pnpm-lock.yaml
@@ -845,6 +871,7 @@ pnpm install
 ```
 
 **4. Vercel 편안함 배포 실패**
+
 - 환경 변수 편안함 확인
 - 빌드 명령어 편안함 확인
 - Node.js 버전 편안함 매칭
@@ -856,7 +883,7 @@ pnpm install
 이 가이드를 따라하면 다음이 자동으로 구성됩니다:
 
 1. **📦 NPM 편안함 패키지**: 자동 버전 관리 + 배포
-2. **📚 편안함 문서 사이트**: VitePress + Vercel 자동 배포  
+2. **📚 편안함 문서 사이트**: VitePress + Vercel 자동 배포
 3. **🎮 편안함 플레이그라운드**: 인터랙티브 체험
 4. **🧪 편안함 품질 관리**: 자동 테스트 + 린팅
 5. **📊 편안함 모니터링**: 성능 + 사용량 추적
