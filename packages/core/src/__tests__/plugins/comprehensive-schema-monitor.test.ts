@@ -1,18 +1,18 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createComprehensiveSchemaMonitorPlugin } from '../../plugins/comprehensive-schema-monitor';
-import { use, reset } from '../../index';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { createComprehensiveSchemaMonitorPlugin } from "../../plugins/comprehensive-schema-monitor";
+import { use, reset } from "../../index";
 
-describe('Comprehensive Schema Monitor Plugin', () => {
+describe("Comprehensive Schema Monitor Plugin", () => {
   beforeEach(() => {
     reset();
     vi.clearAllMocks();
   });
 
-  describe('Integration Tests', () => {
-    it('should integrate all monitoring components', async () => {
+  describe("Integration Tests", () => {
+    it("should integrate all monitoring components", async () => {
       const alerts: any[] = [];
       const metrics: any[] = [];
-      
+
       const plugin = createComprehensiveSchemaMonitorPlugin({
         enabled: true,
         developmentMode: true,
@@ -41,6 +41,7 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
@@ -49,56 +50,52 @@ describe('Comprehensive Schema Monitor Plugin', () => {
       const absorbHook = mockCore.onAbsorb.mock.calls[0][0];
 
       // Simulate various scenarios
-      
+
       // 1. Normal operation
       absorbHook(
-        { name: 'John', email: 'john@example.com' },
-        { name: 'user_name', email: 'user_email' },
-        { url: '/api/user' }
+        { name: "John", email: "john@example.com" },
+        { name: "user_name", email: "user_email" },
+        { url: "/api/user" }
       );
 
       // 2. Missing field (should trigger alert)
       absorbHook(
-        { name: 'Jane', email: undefined },
-        { name: 'user_name', email: 'user_email' },
-        { url: '/api/user' }
+        { name: "Jane", email: undefined },
+        { name: "user_name", email: "user_email" },
+        { url: "/api/user" }
       );
 
       // 3. Error case
       try {
-        absorbHook(
-          null,
-          { name: 'user_name' },
-          { url: '/api/user' }
-        );
+        absorbHook(null, { name: "user_name" }, { url: "/api/user" });
       } catch (error) {
         // Expected to be handled gracefully
       }
 
       // Verify alerts were triggered
       expect(alerts.length).toBeGreaterThan(0);
-      
+
       // Verify utilities are available
-      expect(utilities).toHaveProperty('getDashboard');
-      expect(utilities).toHaveProperty('exportReport');
-      expect(utilities).toHaveProperty('destroy');
+      expect(utilities).toHaveProperty("getDashboard");
+      expect(utilities).toHaveProperty("exportReport");
+      expect(utilities).toHaveProperty("destroy");
 
       const dashboard = utilities.getDashboard();
-      expect(dashboard).toHaveProperty('currentMetrics');
-      expect(dashboard).toHaveProperty('alerts');
-      expect(dashboard).toHaveProperty('analytics');
+      expect(dashboard).toHaveProperty("currentMetrics");
+      expect(dashboard).toHaveProperty("alerts");
+      expect(dashboard).toHaveProperty("analytics");
     });
 
-    it('should handle webhook integrations', async () => {
+    it("should handle webhook integrations", async () => {
       const mockFetch = vi.fn().mockResolvedValue({ ok: true });
       global.fetch = mockFetch;
 
       const plugin = createComprehensiveSchemaMonitorPlugin({
         integrations: {
           webhook: {
-            url: 'https://example.com/webhook',
-            headers: { 'Authorization': 'Bearer token' },
-            events: ['schema_change', 'alert'],
+            url: "https://example.com/webhook",
+            headers: { Authorization: "Bearer token" },
+            events: ["schema_change", "alert"],
           },
         },
       });
@@ -109,47 +106,48 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
-      const utilities = pluginFunction(mockCore);
+      pluginFunction(mockCore);
 
       const absorbHook = mockCore.onAbsorb.mock.calls[0][0];
 
       // Trigger a schema change that should send webhook
       absorbHook(
-        { name: 'John', email: undefined },
-        { name: 'user_name', email: 'user_email' },
-        { url: '/api/user' }
+        { name: "John", email: undefined },
+        { name: "user_name", email: "user_email" },
+        { url: "/api/user" }
       );
 
       // Give webhook time to send
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify webhook was called
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://example.com/webhook',
+        "https://example.com/webhook",
         expect.objectContaining({
-          method: 'POST',
+          method: "POST",
           headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer token',
+            "Content-Type": "application/json",
+            Authorization: "Bearer token",
           }),
-          body: expect.stringContaining('schema_change'),
+          body: expect.stringContaining("schema_change"),
         })
       );
     });
 
-    it('should handle Slack notifications', async () => {
+    it("should handle Slack notifications", async () => {
       const mockFetch = vi.fn().mockResolvedValue({ ok: true });
       global.fetch = mockFetch;
 
       const plugin = createComprehensiveSchemaMonitorPlugin({
         integrations: {
           slack: {
-            webhook: 'https://hooks.slack.com/services/test',
-            channel: '#alerts',
-            username: 'Cushion Bot',
+            webhook: "https://hooks.slack.com/services/test",
+            channel: "#alerts",
+            username: "Cushion Bot",
           },
         },
         alerts: {
@@ -164,41 +162,42 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
-      const utilities = pluginFunction(mockCore);
+      pluginFunction(mockCore);
 
       const absorbHook = mockCore.onAbsorb.mock.calls[0][0];
 
       // Trigger an alert that should send Slack notification
       absorbHook(
-        { name: 'John', email: undefined },
-        { name: 'user_name', email: 'user_email' },
-        { url: '/api/user' }
+        { name: "John", email: undefined },
+        { name: "user_name", email: "user_email" },
+        { url: "/api/user" }
       );
 
       // Give Slack webhook time to send
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify Slack webhook was called
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://hooks.slack.com/services/test',
+        "https://hooks.slack.com/services/test",
         expect.objectContaining({
-          method: 'POST',
+          method: "POST",
           headers: expect.objectContaining({
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           }),
-          body: expect.stringContaining('Schema Alert'),
+          body: expect.stringContaining("Schema Alert"),
         })
       );
     });
 
-    it('should generate comprehensive reports', async () => {
+    it("should generate comprehensive reports", async () => {
       const plugin = createComprehensiveSchemaMonitorPlugin({
         developmentMode: true,
         reporting: {
-          format: 'json',
+          format: "json",
         },
       });
 
@@ -208,6 +207,7 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
@@ -217,36 +217,36 @@ describe('Comprehensive Schema Monitor Plugin', () => {
 
       // Generate some activity
       absorbHook(
-        { name: 'John', email: 'john@example.com' },
-        { name: 'user_name', email: 'user_email' },
-        { url: '/api/user' }
+        { name: "John", email: "john@example.com" },
+        { name: "user_name", email: "user_email" },
+        { url: "/api/user" }
       );
 
       absorbHook(
-        { name: 'Jane', email: undefined },
-        { name: 'user_name', email: 'user_email' },
-        { url: '/api/user' }
+        { name: "Jane", email: undefined },
+        { name: "user_name", email: "user_email" },
+        { url: "/api/user" }
       );
 
       const report = utilities.exportReport();
       const parsedReport = JSON.parse(report);
 
-      expect(parsedReport).toHaveProperty('title');
-      expect(parsedReport).toHaveProperty('period');
-      expect(parsedReport).toHaveProperty('summary');
-      expect(parsedReport).toHaveProperty('alerts');
-      expect(parsedReport).toHaveProperty('recommendations');
-      expect(parsedReport).toHaveProperty('urlBreakdown');
-      
-      expect(parsedReport.summary).toHaveProperty('healthScore');
-      expect(parsedReport.summary).toHaveProperty('totalRequests');
-      expect(parsedReport.summary).toHaveProperty('errorRate');
-      expect(parsedReport.summary).toHaveProperty('schemaChanges');
+      expect(parsedReport).toHaveProperty("title");
+      expect(parsedReport).toHaveProperty("period");
+      expect(parsedReport).toHaveProperty("summary");
+      expect(parsedReport).toHaveProperty("alerts");
+      expect(parsedReport).toHaveProperty("recommendations");
+      expect(parsedReport).toHaveProperty("urlBreakdown");
+
+      expect(parsedReport.summary).toHaveProperty("healthScore");
+      expect(parsedReport.summary).toHaveProperty("totalRequests");
+      expect(parsedReport.summary).toHaveProperty("errorRate");
+      expect(parsedReport.summary).toHaveProperty("schemaChanges");
     });
   });
 
-  describe('Configuration Options', () => {
-    it('should respect enabled flag', async () => {
+  describe("Configuration Options", () => {
+    it("should respect enabled flag", async () => {
       const plugin = createComprehensiveSchemaMonitorPlugin({
         enabled: false,
       });
@@ -257,25 +257,26 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
       const utilities = pluginFunction(mockCore);
 
       // Plugin should still provide utilities even when disabled
-      expect(utilities).toHaveProperty('getDashboard');
-      expect(utilities).toHaveProperty('exportReport');
+      expect(utilities).toHaveProperty("getDashboard");
+      expect(utilities).toHaveProperty("exportReport");
     });
 
-    it('should handle dashboard integration', async () => {
+    it("should handle dashboard integration", async () => {
       const mockFetch = vi.fn().mockResolvedValue({ ok: true });
       global.fetch = mockFetch;
 
       const plugin = createComprehensiveSchemaMonitorPlugin({
         integrations: {
           dashboard: {
-            endpoint: 'https://dashboard.example.com/api/metrics',
-            apiKey: 'test-key',
+            endpoint: "https://dashboard.example.com/api/metrics",
+            apiKey: "test-key",
             interval: 1, // 1 minute
           },
         },
@@ -291,6 +292,7 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
@@ -300,13 +302,13 @@ describe('Comprehensive Schema Monitor Plugin', () => {
 
       // Generate some metrics
       absorbHook(
-        { name: 'John', email: 'john@example.com' },
-        { name: 'user_name', email: 'user_email' },
-        { url: '/api/user' }
+        { name: "John", email: "john@example.com" },
+        { name: "user_name", email: "user_email" },
+        { url: "/api/user" }
       );
 
       // Wait for metrics to be sent to dashboard
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Note: In a real scenario, metrics would be sent periodically
       // For testing purposes, we just verify the setup doesn't break
@@ -314,21 +316,23 @@ describe('Comprehensive Schema Monitor Plugin', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle integration failures gracefully', async () => {
-      const mockFetch = vi.fn().mockRejectedValue(new Error('Network error'));
+  describe("Error Handling", () => {
+    it("should handle integration failures gracefully", async () => {
+      const mockFetch = vi.fn().mockRejectedValue(new Error("Network error"));
       global.fetch = mockFetch;
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const plugin = createComprehensiveSchemaMonitorPlugin({
         integrations: {
           webhook: {
-            url: 'https://example.com/webhook',
-            events: ['schema_change'],
+            url: "https://example.com/webhook",
+            events: ["schema_change"],
           },
           slack: {
-            webhook: 'https://hooks.slack.com/services/test',
+            webhook: "https://hooks.slack.com/services/test",
           },
         },
       });
@@ -339,42 +343,43 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
-      const utilities = pluginFunction(mockCore);
+      pluginFunction(mockCore);
 
       const absorbHook = mockCore.onAbsorb.mock.calls[0][0];
 
       // This should not throw even if webhooks fail
       expect(() => {
         absorbHook(
-          { name: 'John', email: undefined },
-          { name: 'user_name', email: 'user_email' },
-          { url: '/api/user' }
+          { name: "John", email: undefined },
+          { name: "user_name", email: "user_email" },
+          { url: "/api/user" }
         );
       }).not.toThrow();
 
       // Wait for webhook attempts
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Verify error was logged but didn't crash
       expect(consoleErrorSpy).toHaveBeenCalled();
-      
+
       consoleErrorSpy.mockRestore();
     });
 
-    it('should handle malformed configuration', async () => {
+    it("should handle malformed configuration", async () => {
       const plugin = createComprehensiveSchemaMonitorPlugin({
         integrations: {
           // @ts-expect-error Testing invalid config
           webhook: {
             // Missing required URL
-            events: ['schema_change'],
+            events: ["schema_change"],
           },
           slack: {
-            // Missing webhook URL
-            channel: '#alerts',
+            webhook: "https://hooks.slack.com/services/missing",
+            channel: "#alerts",
           },
         },
       });
@@ -385,6 +390,7 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       // Should not throw with malformed config
@@ -395,8 +401,8 @@ describe('Comprehensive Schema Monitor Plugin', () => {
     });
   });
 
-  describe('Performance', () => {
-    it('should handle high-frequency operations', async () => {
+  describe("Performance", () => {
+    it("should handle high-frequency operations", async () => {
       const plugin = createComprehensiveSchemaMonitorPlugin({
         analytics: {
           samplingRate: 0.1, // 10% sampling to reduce overhead
@@ -409,6 +415,7 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;
@@ -418,12 +425,12 @@ describe('Comprehensive Schema Monitor Plugin', () => {
 
       // Simulate high-frequency operations
       const startTime = Date.now();
-      
+
       for (let i = 0; i < 1000; i++) {
         absorbHook(
           { name: `User${i}`, email: `user${i}@example.com` },
-          { name: 'user_name', email: 'user_email' },
-          { url: '/api/user' }
+          { name: "user_name", email: "user_email" },
+          { url: "/api/user" }
         );
       }
 
@@ -439,8 +446,8 @@ describe('Comprehensive Schema Monitor Plugin', () => {
     });
   });
 
-  describe('Cleanup', () => {
-    it('should cleanup resources on destroy', async () => {
+  describe("Cleanup", () => {
+    it("should cleanup resources on destroy", async () => {
       const plugin = createComprehensiveSchemaMonitorPlugin({
         reporting: {
           dailyReports: true,
@@ -453,6 +460,7 @@ describe('Comprehensive Schema Monitor Plugin', () => {
         onAbsorb: vi.fn(),
         onResponse: vi.fn(),
         onRequest: vi.fn(),
+        addMapper: vi.fn(),
       };
 
       const pluginFunction = plugin.setup;

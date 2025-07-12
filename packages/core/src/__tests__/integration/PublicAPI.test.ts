@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   setupCushion,
   setupCushions,
@@ -18,8 +18,8 @@ describe('Public API Integration Tests', () => {
 
   beforeEach(() => {
     originalFetch = global.fetch;
-    global.fetch = vi.fn();
     reset(); // 각 테스트 전 초기화
+    global.fetch = vi.fn(); // reset 후에 mock 설정
   });
 
   afterEach(() => {
@@ -35,13 +35,15 @@ describe('Public API Integration Tests', () => {
         user_email: 'dev@example.com',
       };
 
+      const mockFetch = vi.fn();
       const mockResponse = {
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue(serverResponse),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
+      global.fetch = mockFetch as any;
 
       // When: 한 곳에서만 설정
       setupCushion('/api/user', {
@@ -63,6 +65,7 @@ describe('Public API Integration Tests', () => {
       // Scenario: "죄송합니다. 코딩 컨벤션 변경으로 모든 필드명이 snake_case → camelCase로 바뀝니다."
 
       // 1. 처음엔 snake_case
+      let mockFetch = vi.fn();
       let mockResponse = {
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
@@ -72,7 +75,8 @@ describe('Public API Integration Tests', () => {
         }),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
+      global.fetch = mockFetch as any;
 
       setupCushion('/api/user', {
         name: 'user_name',
@@ -98,7 +102,7 @@ describe('Public API Integration Tests', () => {
         }),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       // 3. api-config.ts 한 파일만 수정
       setupCushion('/api/user', {
@@ -120,13 +124,15 @@ describe('Public API Integration Tests', () => {
         userEmail: 'dev@example.com',
       };
 
+      const mockFetch = vi.fn();
       const mockResponse = {
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue(v2Response),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
+      global.fetch = mockFetch as any;
 
       // 조건부 쿠션 설정
       setupCushion('/api/user', {
@@ -159,13 +165,15 @@ describe('Public API Integration Tests', () => {
         },
       };
 
+      const mockFetch = vi.fn();
       const mockResponse = {
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue(nestedResponse),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
+      global.fetch = mockFetch as any;
 
       setupCushion('/api/profile', {
         name: 'user.profile.name',
@@ -184,6 +192,10 @@ describe('Public API Integration Tests', () => {
 
   describe('setupCushions() - 여러 API 일괄 설정', () => {
     it('should setup multiple cushions at once', async () => {
+      // Mock 먼저 설정
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch as any;
+
       setupCushions({
         '/api/user': { name: 'user_name', email: 'user_email' },
         '/api/posts': { title: 'post_title', content: 'post_content' },
@@ -191,7 +203,7 @@ describe('Public API Integration Tests', () => {
       });
 
       // User API
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -206,7 +218,7 @@ describe('Public API Integration Tests', () => {
       expect(user.name).toBe('김개발');
 
       // Posts API
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -221,7 +233,7 @@ describe('Public API Integration Tests', () => {
       expect(post.title).toBe('제목');
 
       // Comments API (with pattern)
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -275,21 +287,23 @@ describe('Public API Integration Tests', () => {
         });
       });
 
-      use(loggingPlugin);
-
-      // Setup cushion
-      setupCushion('/api/user', {
-        name: 'user_name',
-      });
-
-      // Make request
+      // Mock 먼저 설정
+      const mockFetch = vi.fn();
       const mockResponse = {
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({ user_name: '김개발' }),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
+      global.fetch = mockFetch as any;
+
+      use(loggingPlugin);
+
+      // Setup cushion
+      setupCushion('/api/user', {
+        name: 'user_name',
+      });
 
       await fetch('/api/user');
 
@@ -312,6 +326,9 @@ describe('Public API Integration Tests', () => {
 
   describe('Manual Control', () => {
     it('should activate and deactivate cushion manually', async () => {
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch as any;
+
       deactivate(); // 비활성화
 
       setupCushion('/api/user', {
@@ -328,7 +345,7 @@ describe('Public API Integration Tests', () => {
         json: vi.fn().mockResolvedValue({ user_name: '김개발' }),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const response = await fetch('/api/user');
       const data = await response.json();
@@ -343,13 +360,16 @@ describe('Public API Integration Tests', () => {
     });
 
     it('should remove specific cushion', async () => {
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch as any;
+
       setupCushion('/api/user', { name: 'user_name' });
       setupCushion('/api/posts', { title: 'post_title' });
 
       removeCushion('/api/user');
 
       // User API는 변환 안됨
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({ user_name: '김개발' }),
@@ -361,7 +381,7 @@ describe('Public API Integration Tests', () => {
       expect(userData).toEqual({ user_name: '김개발' }); // 원본 그대로
 
       // Posts API는 여전히 변환됨
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({ post_title: '제목' }),
@@ -374,6 +394,9 @@ describe('Public API Integration Tests', () => {
     });
 
     it('should reset all cushions', async () => {
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch as any;
+
       setupCushions({
         '/api/user': { name: 'user_name' },
         '/api/posts': { title: 'post_title' },
@@ -388,7 +411,7 @@ describe('Public API Integration Tests', () => {
         json: vi.fn().mockResolvedValue({ user_name: '김개발' }),
         clone: vi.fn().mockReturnThis(),
       };
-      (global.fetch as Mock).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const response = await fetch('/api/user');
       const data = await response.json();
@@ -400,6 +423,9 @@ describe('Public API Integration Tests', () => {
     it('should handle 점진적 API 마이그레이션', async () => {
       // A/B 테스트로 점진적 변경
       const detectVersion = (data: any) => 'userName' in data;
+
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch as any;
 
       setupCushion('/api/user', {
         mapping: {
@@ -414,7 +440,7 @@ describe('Public API Integration Tests', () => {
       });
 
       // Old version user
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -429,7 +455,7 @@ describe('Public API Integration Tests', () => {
       expect(user).toEqual({ name: '김개발', email: 'old@example.com' });
 
       // New version user
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -446,6 +472,9 @@ describe('Public API Integration Tests', () => {
 
     it('should handle 마이크로서비스 환경', async () => {
       // 각 서비스별 다른 컨벤션
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch as any;
+
       setupCushions({
         '/api/user-service/*': {
           // User 서비스: snake_case
@@ -466,7 +495,7 @@ describe('Public API Integration Tests', () => {
       });
 
       // User Service
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -481,7 +510,7 @@ describe('Public API Integration Tests', () => {
       expect(data).toEqual({ id: '123', name: '김개발' });
 
       // Order Service
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -496,7 +525,7 @@ describe('Public API Integration Tests', () => {
       expect(data).toEqual({ id: '456', amount: 50000 });
 
       // Product Service
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({
@@ -515,6 +544,9 @@ describe('Public API Integration Tests', () => {
     });
 
     it('should demonstrate the complete workflow', async () => {
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch as any;
+
       // 1. 초기 설정
       setupCushion('/api/user', {
         name: 'user_name',
@@ -534,7 +566,7 @@ describe('Public API Integration Tests', () => {
       use(metricsPlugin);
 
       // 3. 일반적인 사용
-      (global.fetch as Mock).mockResolvedValue({
+      mockFetch.mockResolvedValue({
         ok: true,
         headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue({

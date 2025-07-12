@@ -1,25 +1,25 @@
-import { createPlugin } from '../index';
-import SchemaAlertSystem from './schema-alerts';
-import SchemaAnalytics from './schema-analytics';
-import type { MappingConfig, CushionCore } from '../types';
-import type { SchemaChangeEvent, SchemaMonitorConfig } from './schema-monitor';
-import type { AlertConfig } from './schema-alerts';
-import type { AnalyticsConfig } from './schema-analytics';
+import { createPlugin } from "../index";
+import SchemaAlertSystem from "./schema-alerts";
+import SchemaAnalytics from "./schema-analytics";
+import type { MappingConfig, CushionCore } from "../types";
+import type { SchemaChangeEvent, SchemaMonitorConfig } from "./schema-monitor";
+import type { AlertConfig } from "./schema-alerts";
+import type { AnalyticsConfig } from "./schema-analytics";
 
 export interface ComprehensiveMonitorConfig {
   /** Schema monitoring configuration */
   monitor?: SchemaMonitorConfig;
-  
+
   /** Alert system configuration */
   alerts?: AlertConfig;
-  
+
   /** Analytics configuration */
   analytics?: AnalyticsConfig;
-  
+
   /** Global settings */
   enabled?: boolean;
   developmentMode?: boolean;
-  
+
   /** Integration settings */
   integrations?: {
     /** Slack webhook URL for notifications */
@@ -29,10 +29,10 @@ export interface ComprehensiveMonitorConfig {
       username?: string;
       iconEmoji?: string;
     };
-    
+
     /** Email configuration */
     email?: {
-      provider: 'sendgrid' | 'mailgun' | 'aws-ses';
+      provider: "sendgrid" | "mailgun" | "aws-ses";
       apiKey: string;
       from: string;
       to: string[];
@@ -41,38 +41,38 @@ export interface ComprehensiveMonitorConfig {
         report: string;
       };
     };
-    
+
     /** Dashboard/monitoring tools */
     dashboard?: {
       endpoint: string;
       apiKey: string;
       interval: number; // minutes
     };
-    
+
     /** Webhook for custom integrations */
     webhook?: {
       url: string;
       headers?: Record<string, string>;
-      events?: ('schema_change' | 'alert' | 'metrics_update')[];
+      events?: ("schema_change" | "alert" | "metrics_update")[];
     };
   };
-  
+
   /** Reporting configuration */
   reporting?: {
     /** Enable daily reports */
     dailyReports?: boolean;
-    
+
     /** Enable weekly reports */
     weeklyReports?: boolean;
-    
+
     /** Custom report schedule (cron expression) */
     customSchedule?: string;
-    
+
     /** Report recipients */
     recipients?: string[];
-    
+
     /** Report format */
-    format?: 'json' | 'html' | 'markdown';
+    format?: "json" | "html" | "markdown";
   };
 }
 
@@ -85,7 +85,8 @@ export class ComprehensiveSchemaMonitor {
   constructor(config: ComprehensiveMonitorConfig = {}) {
     this.config = {
       enabled: config.enabled ?? true,
-      developmentMode: config.developmentMode ?? process.env.NODE_ENV === 'development',
+      developmentMode:
+        config.developmentMode ?? process.env.NODE_ENV === "development",
       ...config,
     };
 
@@ -93,11 +94,13 @@ export class ComprehensiveSchemaMonitor {
     this.alertSystem = new SchemaAlertSystem({
       ...config.alerts,
       slackWebhook: config.integrations?.slack?.webhook,
-      emailConfig: config.integrations?.email ? {
-        apiKey: config.integrations.email.apiKey,
-        from: config.integrations.email.from,
-        to: config.integrations.email.to,
-      } : undefined,
+      emailConfig: config.integrations?.email
+        ? {
+            apiKey: config.integrations.email.apiKey,
+            from: config.integrations.email.from,
+            to: config.integrations.email.to,
+          }
+        : undefined,
       developmentMode: this.config.developmentMode,
     });
 
@@ -116,14 +119,17 @@ export class ComprehensiveSchemaMonitor {
   }
 
   private setupReporting(): void {
-    if (!this.config.reporting?.dailyReports && !this.config.reporting?.weeklyReports) {
+    if (
+      !this.config.reporting?.dailyReports &&
+      !this.config.reporting?.weeklyReports
+    ) {
       return;
     }
 
     // Set up daily reports (every 24 hours)
     if (this.config.reporting?.dailyReports) {
       this.reportingInterval = setInterval(() => {
-        this.generateAndSendReport('daily');
+        this.generateAndSendReport("daily");
       }, 24 * 60 * 60 * 1000);
     }
 
@@ -131,7 +137,7 @@ export class ComprehensiveSchemaMonitor {
     if (this.config.reporting?.weeklyReports) {
       setTimeout(() => {
         setInterval(() => {
-          this.generateAndSendReport('weekly');
+          this.generateAndSendReport("weekly");
         }, 7 * 24 * 60 * 60 * 1000);
       }, this.getTimeUntilNextWeek());
     }
@@ -152,24 +158,27 @@ export class ComprehensiveSchemaMonitor {
     }
 
     // Send to webhook
-    if (this.config.integrations?.webhook?.events?.includes('metrics_update')) {
-      await this.sendToWebhook('metrics_update', metrics);
+    if (this.config.integrations?.webhook?.events?.includes("metrics_update")) {
+      await this.sendToWebhook("metrics_update", metrics);
     }
   }
 
-  private async handleHealthScoreChange(score: number, previousScore: number): Promise<void> {
+  private async handleHealthScoreChange(
+    score: number,
+    previousScore: number
+  ): Promise<void> {
     // Alert if health score drops significantly
     if (score < 70 && previousScore >= 70) {
       await this.alertSystem.processAlert({
         id: `health_score_${Date.now()}`,
-        severity: 'high',
-        type: 'high_failure_rate',
-        title: 'Health Score Drop',
+        severity: "high",
+        type: "high_failure_rate",
+        title: "Health Score Drop",
         description: `Health score dropped from ${previousScore} to ${score}`,
-        url: 'system-wide',
+        url: "system-wide",
         timestamp: new Date(),
         metadata: { previousScore, currentScore: score },
-        suggestedAction: 'Review recent schema changes and error patterns',
+        suggestedAction: "Review recent schema changes and error patterns",
       });
     }
   }
@@ -179,15 +188,15 @@ export class ComprehensiveSchemaMonitor {
 
     try {
       await fetch(this.config.integrations.dashboard.endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.integrations.dashboard.apiKey}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.integrations.dashboard.apiKey}`,
         },
         body: JSON.stringify(data),
       });
     } catch (error) {
-      console.error('[Cushion Monitor] Failed to send to dashboard:', error);
+      console.error("[Cushion Monitor] Failed to send to dashboard:", error);
     }
   }
 
@@ -196,9 +205,9 @@ export class ComprehensiveSchemaMonitor {
 
     try {
       await fetch(this.config.integrations.webhook.url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...this.config.integrations.webhook.headers,
         },
         body: JSON.stringify({
@@ -208,15 +217,17 @@ export class ComprehensiveSchemaMonitor {
         }),
       });
     } catch (error) {
-      console.error('[Cushion Monitor] Failed to send to webhook:', error);
+      console.error("[Cushion Monitor] Failed to send to webhook:", error);
     }
   }
 
-  private async generateAndSendReport(type: 'daily' | 'weekly'): Promise<void> {
+  private async generateAndSendReport(type: "daily" | "weekly"): Promise<void> {
     const report = this.generateReport(type);
-    
+
     if (!this.config.reporting?.recipients?.length) {
-      console.log(`[Cushion Monitor] ${type} report generated but no recipients configured`);
+      console.log(
+        `[Cushion Monitor] ${type} report generated but no recipients configured`
+      );
       return;
     }
 
@@ -231,16 +242,20 @@ export class ComprehensiveSchemaMonitor {
     }
   }
 
-  private generateReport(type: 'daily' | 'weekly'): string {
+  private generateReport(type: "daily" | "weekly"): string {
     const currentMetrics = this.analytics.getCurrentMetrics();
     const alerts = this.alertSystem.getAlertHistory();
-    const timeframe = type === 'daily' ? '24 hours' : '7 days';
-    
-    const cutoffTime = new Date(Date.now() - (type === 'daily' ? 24 : 168) * 60 * 60 * 1000);
-    const recentAlerts = alerts.filter(alert => alert.timestamp > cutoffTime);
-    
+    const timeframe = type === "daily" ? "24 hours" : "7 days";
+
+    const cutoffTime = new Date(
+      Date.now() - (type === "daily" ? 24 : 168) * 60 * 60 * 1000
+    );
+    const recentAlerts = alerts.filter((alert) => alert.timestamp > cutoffTime);
+
     const report = {
-      title: `Cushion Schema Monitor ${type.charAt(0).toUpperCase() + type.slice(1)} Report`,
+      title: `Cushion Schema Monitor ${
+        type.charAt(0).toUpperCase() + type.slice(1)
+      } Report`,
       period: timeframe,
       generatedAt: new Date().toISOString(),
       summary: {
@@ -249,16 +264,17 @@ export class ComprehensiveSchemaMonitor {
         errorRate: currentMetrics?.performance.errorRate || 0,
         schemaChanges: currentMetrics?.schemaEvolution.totalFieldChanges || 0,
         alertsTriggered: recentAlerts.length,
-        stabilityTrend: currentMetrics?.predictiveInsights.schemaStabilityTrend || 'stable',
+        stabilityTrend:
+          currentMetrics?.predictiveInsights.schemaStabilityTrend || "stable",
       },
       alerts: recentAlerts.slice(0, 10), // Top 10 recent alerts
       recommendations: currentMetrics?.predictiveInsights.recommendations || [],
       urlBreakdown: currentMetrics?.urlBreakdown || {},
     };
 
-    if (this.config.reporting?.format === 'html') {
+    if (this.config.reporting?.format === "html") {
       return this.generateHtmlReport(report);
-    } else if (this.config.reporting?.format === 'markdown') {
+    } else if (this.config.reporting?.format === "markdown") {
       return this.generateMarkdownReport(report);
     } else {
       return JSON.stringify(report, null, 2);
@@ -266,9 +282,13 @@ export class ComprehensiveSchemaMonitor {
   }
 
   private generateHtmlReport(report: any): string {
-    const healthColor = report.summary.healthScore > 80 ? 'green' : 
-                      report.summary.healthScore > 60 ? 'orange' : 'red';
-    
+    const healthColor =
+      report.summary.healthScore > 80
+        ? "green"
+        : report.summary.healthScore > 60
+        ? "orange"
+        : "red";
+
     return `
       <!DOCTYPE html>
       <html>
@@ -286,44 +306,74 @@ export class ComprehensiveSchemaMonitor {
       <body>
         <h1>${report.title}</h1>
         <p><strong>Period:</strong> ${report.period}</p>
-        <p><strong>Generated:</strong> ${new Date(report.generatedAt).toLocaleString()}</p>
-        
+        <p><strong>Generated:</strong> ${new Date(
+          report.generatedAt
+        ).toLocaleString()}</p>
+
         <div class="summary">
           <h2>Summary</h2>
-          <p><strong>Health Score:</strong> <span class="health-score">${report.summary.healthScore}</span></p>
-          <p><strong>Total Requests:</strong> ${report.summary.totalRequests}</p>
-          <p><strong>Error Rate:</strong> ${report.summary.errorRate.toFixed(2)}%</p>
-          <p><strong>Schema Changes:</strong> ${report.summary.schemaChanges}</p>
-          <p><strong>Alerts Triggered:</strong> ${report.summary.alertsTriggered}</p>
-          <p><strong>Stability Trend:</strong> ${report.summary.stabilityTrend}</p>
+          <p><strong>Health Score:</strong> <span class="health-score">${
+            report.summary.healthScore
+          }</span></p>
+          <p><strong>Total Requests:</strong> ${
+            report.summary.totalRequests
+          }</p>
+          <p><strong>Error Rate:</strong> ${report.summary.errorRate.toFixed(
+            2
+          )}%</p>
+          <p><strong>Schema Changes:</strong> ${
+            report.summary.schemaChanges
+          }</p>
+          <p><strong>Alerts Triggered:</strong> ${
+            report.summary.alertsTriggered
+          }</p>
+          <p><strong>Stability Trend:</strong> ${
+            report.summary.stabilityTrend
+          }</p>
         </div>
-        
+
         <h2>Recent Alerts</h2>
-        ${report.alerts.map((alert: any) => `
-          <div class="alert ${alert.severity === 'critical' ? 'critical' : ''}">
-            <strong>${alert.title}</strong> - ${alert.severity.toUpperCase()}<br>
-            <small>${alert.url} - ${new Date(alert.timestamp).toLocaleString()}</small><br>
+        ${report.alerts
+          .map(
+            (alert: any) => `
+          <div class="alert ${alert.severity === "critical" ? "critical" : ""}">
+            <strong>${
+              alert.title
+            }</strong> - ${alert.severity.toUpperCase()}<br>
+            <small>${alert.url} - ${new Date(
+              alert.timestamp
+            ).toLocaleString()}</small><br>
             ${alert.description}
           </div>
-        `).join('')}
-        
+        `
+          )
+          .join("")}
+
         <h2>Recommendations</h2>
-        ${report.recommendations.map((rec: any) => `
+        ${report.recommendations
+          .map(
+            (rec: any) => `
           <div class="recommendation">
             <strong>${rec.title}</strong> - ${rec.priority.toUpperCase()}<br>
             ${rec.description}<br>
             <small><em>Impact: ${rec.impact}</em></small>
           </div>
-        `).join('')}
+        `
+          )
+          .join("")}
       </body>
       </html>
     `;
   }
 
   private generateMarkdownReport(report: any): string {
-    const healthEmoji = report.summary.healthScore > 80 ? '✅' : 
-                       report.summary.healthScore > 60 ? '⚠️' : '❌';
-    
+    const healthEmoji =
+      report.summary.healthScore > 80
+        ? "✅"
+        : report.summary.healthScore > 60
+        ? "⚠️"
+        : "❌";
+
     return `
 # ${report.title}
 
@@ -341,57 +391,77 @@ export class ComprehensiveSchemaMonitor {
 
 ## Recent Alerts
 
-${report.alerts.map((alert: any) => `
-### ${alert.severity === 'critical' ? '🚨' : '⚠️'} ${alert.title} (${alert.severity.toUpperCase()})
+${report.alerts
+  .map(
+    (alert: any) => `
+### ${alert.severity === "critical" ? "🚨" : "⚠️"} ${
+      alert.title
+    } (${alert.severity.toUpperCase()})
 - **URL:** ${alert.url}
 - **Time:** ${new Date(alert.timestamp).toLocaleString()}
 - **Description:** ${alert.description}
-`).join('')}
+`
+  )
+  .join("")}
 
 ## Recommendations
 
-${report.recommendations.map((rec: any) => `
-### ${rec.priority === 'high' ? '🔥' : rec.priority === 'medium' ? '📋' : '💡'} ${rec.title}
+${report.recommendations
+  .map(
+    (rec: any) => `
+### ${
+      rec.priority === "high" ? "🔥" : rec.priority === "medium" ? "📋" : "💡"
+    } ${rec.title}
 - **Priority:** ${rec.priority.toUpperCase()}
 - **Category:** ${rec.category}
 - **Description:** ${rec.description}
 - **Impact:** ${rec.impact}
-`).join('')}
+`
+  )
+  .join("")}
 
 ---
 *Generated by Cushion Schema Monitor*
     `.trim();
   }
 
-  private async sendReportViaEmail(report: string, type: string): Promise<void> {
+  private async sendReportViaEmail(
+    report: string,
+    type: string
+  ): Promise<void> {
     // Email sending implementation would go here
     console.log(`[Cushion Monitor] ${type} report would be sent via email`);
   }
 
-  private async sendReportViaSlack(report: string, type: string): Promise<void> {
+  private async sendReportViaSlack(
+    report: string,
+    type: string
+  ): Promise<void> {
     if (!this.config.integrations?.slack?.webhook) return;
 
     const payload = {
-      text: `📊 Cushion Schema Monitor ${type.charAt(0).toUpperCase() + type.slice(1)} Report`,
+      text: `📊 Cushion Schema Monitor ${
+        type.charAt(0).toUpperCase() + type.slice(1)
+      } Report`,
       attachments: [
         {
-          color: 'good',
+          color: "good",
           text: report.substring(0, 3000), // Slack has message limits
-          footer: 'Cushion Schema Monitor',
+          footer: "Cushion Schema Monitor",
         },
       ],
     };
 
     try {
       await fetch(this.config.integrations.slack.webhook, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
     } catch (error) {
-      console.error('[Cushion Monitor] Failed to send Slack report:', error);
+      console.error("[Cushion Monitor] Failed to send Slack report:", error);
     }
   }
 
@@ -403,12 +473,16 @@ ${report.recommendations.map((rec: any) => `
     await (this.alertSystem as any).handleSchemaChange(event);
 
     // Send to webhook
-    if (this.config.integrations?.webhook?.events?.includes('schema_change')) {
-      await this.sendToWebhook('schema_change', event);
+    if (this.config.integrations?.webhook?.events?.includes("schema_change")) {
+      await this.sendToWebhook("schema_change", event);
     }
   }
 
-  public recordTransformation(url: string, success: boolean, transformTime: number): void {
+  public recordTransformation(
+    url: string,
+    success: boolean,
+    transformTime: number
+  ): void {
     this.analytics.recordTransformation(url, success, transformTime);
   }
 
@@ -421,7 +495,7 @@ ${report.recommendations.map((rec: any) => `
   }
 
   public exportReport(): string {
-    return this.generateReport('daily');
+    return this.generateReport("daily");
   }
 
   public destroy(): void {
@@ -431,64 +505,129 @@ ${report.recommendations.map((rec: any) => `
   }
 }
 
-export const createComprehensiveSchemaMonitorPlugin = (config: ComprehensiveMonitorConfig = {}) => {
+export const createComprehensiveSchemaMonitorPlugin = (
+  config: ComprehensiveMonitorConfig = {}
+) => {
   const monitor = new ComprehensiveSchemaMonitor(config);
 
-  return createPlugin('comprehensive-schema-monitor', (core: CushionCore) => {
-    // Monitor absorb operations
-    core.onAbsorb((data: any, mapping: MappingConfig, context: any) => {
-      const startTime = Date.now();
-      
-      try {
-        const result = data; // Data is already transformed at this point
-        const transformTime = Date.now() - startTime;
-        
-        monitor.recordTransformation(context.url, true, transformTime);
-        
-        // Check for schema changes
-        const hasUndefinedFields = Object.values(result).some(value => value === undefined);
-        if (hasUndefinedFields) {
-          for (const [fieldName, value] of Object.entries(result)) {
-            if (value === undefined) {
-              monitor.handleSchemaChange({
-                url: context.url,
-                fieldName,
-                changeType: 'missing',
-                timestamp: new Date(),
-              });
+  return {
+    name: "comprehensive-schema-monitor",
+    install: (core: CushionCore) => {
+      // Monitor absorb operations
+      core.onAbsorb((data: any, mapping: MappingConfig, context: any) => {
+        if (!context || !context.url) {
+          return data;
+        }
+
+        const startTime = Date.now();
+
+        try {
+          const result = data; // Data is already transformed at this point
+          const transformTime = Date.now() - startTime;
+
+          monitor.recordTransformation(context.url, true, transformTime);
+
+          // Check for schema changes
+          const hasUndefinedFields = Object.values(result).some(
+            (value) => value === undefined
+          );
+          if (hasUndefinedFields) {
+            for (const [fieldName, value] of Object.entries(result)) {
+              if (value === undefined) {
+                monitor.handleSchemaChange({
+                  url: context.url,
+                  fieldName,
+                  changeType: "missing",
+                  timestamp: new Date(),
+                });
+              }
             }
           }
+
+          return result;
+        } catch (error) {
+          const transformTime = Date.now() - startTime;
+          monitor.recordTransformation(context.url, false, transformTime);
+
+          monitor.handleSchemaChange({
+            url: context.url,
+            fieldName: "unknown",
+            changeType: "mapping_failed",
+            timestamp: new Date(),
+          });
+
+          return data;
         }
-        
-        return result;
-      } catch (error) {
-        const transformTime = Date.now() - startTime;
-        monitor.recordTransformation(context.url, false, transformTime);
-        
-        monitor.handleSchemaChange({
-          url: context.url,
-          fieldName: 'unknown',
-          changeType: 'mapping_failed',
-          timestamp: new Date(),
-        });
-        
+      });
+
+      // Monitor response processing
+      core.onResponse((url: string, data: any) => {
+        monitor.recordTransformation(url, true, 0);
         return data;
-      }
-    });
+      });
+    },
+    setup: (core: CushionCore) => {
+      // Monitor absorb operations
+      core.onAbsorb((data: any, mapping: MappingConfig, context: any) => {
+        if (!context || !context.url) {
+          return data;
+        }
 
-    // Monitor response processing
-    core.onResponse((url: string, data: any) => {
-      monitor.recordTransformation(url, true, 0);
-      return data;
-    });
+        const startTime = Date.now();
 
-    // Expose monitoring utilities
-    return {
-      getDashboard: () => monitor.getDashboard(),
-      exportReport: () => monitor.exportReport(),
-      destroy: () => monitor.destroy(),
-    };
-  });
+        try {
+          const result = data; // Data is already transformed at this point
+          const transformTime = Date.now() - startTime;
+
+          monitor.recordTransformation(context.url, true, transformTime);
+
+          // Check for schema changes
+          const hasUndefinedFields = Object.values(result).some(
+            (value) => value === undefined
+          );
+          if (hasUndefinedFields) {
+            for (const [fieldName, value] of Object.entries(result)) {
+              if (value === undefined) {
+                monitor.handleSchemaChange({
+                  url: context.url,
+                  fieldName,
+                  changeType: "missing",
+                  timestamp: new Date(),
+                });
+              }
+            }
+          }
+
+          return result;
+        } catch (error) {
+          const transformTime = Date.now() - startTime;
+          monitor.recordTransformation(context.url, false, transformTime);
+
+          monitor.handleSchemaChange({
+            url: context.url,
+            fieldName: "unknown",
+            changeType: "mapping_failed",
+            timestamp: new Date(),
+          });
+
+          return data;
+        }
+      });
+
+      // Monitor response processing
+      core.onResponse((url: string, data: any) => {
+        monitor.recordTransformation(url, true, 0);
+        return data;
+      });
+
+      // Expose monitoring utilities
+      return {
+        getDashboard: () => monitor.getDashboard(),
+        exportReport: () => monitor.exportReport(),
+        destroy: () => monitor.destroy(),
+      };
+    },
+  };
 };
 
 export default createComprehensiveSchemaMonitorPlugin;

@@ -3,13 +3,13 @@
 // "Absorb the chaos, keep the peace"
 // ================================
 
-import { Cushion } from './core.js';
+import { Cushion } from "./core.js";
 import type {
   CushionCore,
   CushionRule,
   MappingConfig,
   Plugin,
-} from './types.js';
+} from "./types.js";
 
 // ===== 전역 쿠션 인스턴스 =====
 const cushion = new Cushion();
@@ -180,7 +180,7 @@ export type {
   CustomMapper,
   // Options
   AbsorbOptions,
-} from './types.js';
+} from "./types.js";
 
 // ===== 클래스 내보내기 (고급 사용자용) =====
 export {
@@ -189,7 +189,7 @@ export {
   CushionManager,
   ShockAbsorber,
   PluginEcosystem,
-} from './core.js';
+} from "./core.js";
 
 // ===== 기본 내보내기 =====
 export default cushion;
@@ -238,7 +238,7 @@ const loggingPlugin = createPlugin('logger', (core) => {
   core.onRequest((url, options) => {
     console.log(`[Cushion] Request: ${url}`);
   });
-  
+
   core.onAbsorb((data, mapping, context) => {
     console.log(`[Cushion] Absorbed data for ${context.url}`);
     return data;

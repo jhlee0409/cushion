@@ -12,7 +12,7 @@ import type {
   Plugin,
   RequestHook,
   ResponseHook,
-} from './types.js';
+} from "./types.js";
 
 /**
  * Change Absorption Engine - 변화를 흡수하는 핵심 엔진
@@ -24,7 +24,7 @@ export class AbsorptionEngine {
    * 외부 변화를 흡수하여 내부 안정성 제공
    */
   absorb<T = any>(data: any, mapping: MappingConfig): T {
-    if (!data || typeof data !== 'object') {
+    if (!data || typeof data !== "object") {
       return data;
     }
 
@@ -35,7 +35,7 @@ export class AbsorptionEngine {
     const cushioned: any = {};
 
     for (const [stableKey, changingPath] of Object.entries(mapping)) {
-      if (typeof changingPath === 'function') {
+      if (typeof changingPath === "function") {
         try {
           cushioned[stableKey] = changingPath(data);
         } catch (error) {
@@ -45,7 +45,7 @@ export class AbsorptionEngine {
           );
           cushioned[stableKey] = undefined;
         }
-      } else if (typeof changingPath === 'string') {
+      } else if (typeof changingPath === "string") {
         cushioned[stableKey] = this.extractNestedValue(data, changingPath);
       }
     }
@@ -58,8 +58,8 @@ export class AbsorptionEngine {
    */
   private extractNestedValue(obj: any, path: string): any {
     // Handle array notation (e.g., "posts.*.author" or "items[0].name")
-    if (path.includes('*')) {
-      const parts = path.split('.*.');
+    if (path.includes("*")) {
+      const parts = path.split(".*.");
       if (parts.length === 2) {
         const arrayPath = parts[0];
         const itemPath = parts[1];
@@ -71,7 +71,7 @@ export class AbsorptionEngine {
     }
 
     // Handle regular dot notation
-    return path.split('.').reduce((current, key) => {
+    return path.split(".").reduce((current, key) => {
       if (current === null || current === undefined) {
         return undefined;
       }
@@ -128,7 +128,7 @@ export class CushionManager {
     this.rules.set(urlPattern, rule);
 
     // 패턴 기반 매칭을 위한 정규식 생성
-    if (urlPattern.includes('*') || urlPattern.includes(':')) {
+    if (urlPattern.includes("*") || urlPattern.includes(":")) {
       const regex = this.createPatternRegex(urlPattern);
       this.patterns.push({ regex, rule, pattern: urlPattern });
       // Sort patterns by specificity (more specific patterns first)
@@ -146,11 +146,11 @@ export class CushionManager {
     }
 
     // 쿼리 파라미터 포함 매치
-    const urlWithoutQuery = url.split('?')[0];
+    const urlWithoutQuery = url.split("?")[0];
 
     // Check exact match with query params
     for (const [pattern, rule] of this.rules) {
-      if (pattern.includes('?') && this.matchesWithQuery(url, pattern)) {
+      if (pattern.includes("?") && this.matchesWithQuery(url, pattern)) {
         return rule;
       }
     }
@@ -169,8 +169,8 @@ export class CushionManager {
    * 쿼리 파라미터를 포함한 URL 매칭
    */
   private matchesWithQuery(url: string, pattern: string): boolean {
-    const [urlPath, urlQuery] = url.split('?');
-    const [patternPath, patternQuery] = pattern.split('?');
+    const [urlPath, urlQuery] = url.split("?");
+    const [patternPath, patternQuery] = pattern.split("?");
 
     if (urlPath !== patternPath) {
       return false;
@@ -180,7 +180,7 @@ export class CushionManager {
       return true;
     }
 
-    const urlParams = new URLSearchParams(urlQuery || '');
+    const urlParams = new URLSearchParams(urlQuery || "");
     const patternParams = new URLSearchParams(patternQuery);
 
     for (const [key, value] of patternParams) {
@@ -198,11 +198,11 @@ export class CushionManager {
   private createPatternRegex(pattern: string): RegExp {
     const regexPattern = pattern
       // Escape special regex characters except * and :
-      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
       // Replace * with .*
-      .replace(/\*/g, '.*')
+      .replace(/\*/g, ".*")
       // Replace :param with named groups
-      .replace(/:(\w+)/g, '(?<$1>[^/]+)');
+      .replace(/:(\w+)/g, "(?<$1>[^/]+)");
 
     return new RegExp(`^${regexPattern}$`);
   }
@@ -242,7 +242,7 @@ export class ShockAbsorber {
     this.cushionManager = cushionManager;
     this.absorptionEngine = absorptionEngine;
     this.pluginEcosystem = pluginEcosystem;
-    this.originalFetch = globalThis.fetch;
+    this.originalFetch = globalThis.fetch; // Initialize with current fetch
   }
 
   /**
@@ -251,8 +251,11 @@ export class ShockAbsorber {
   activate(): void {
     if (this.isActive) return;
 
+    // Store the current fetch (which might already be a mock in tests)
+    this.originalFetch = globalThis.fetch;
+
     globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === 'string' ? input : input.toString();
+      const url = typeof input === "string" ? input : input.toString();
 
       // Execute request hooks
       if (this.pluginEcosystem) {
@@ -275,8 +278,8 @@ export class ShockAbsorber {
       const clonedResponse = response.clone();
 
       try {
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
           return response;
         }
 
@@ -331,7 +334,7 @@ export class ShockAbsorber {
 
         return this.createCushionedResponse(cushionedData, clonedResponse);
       } catch (error) {
-        console.error('[Cushion] Error processing response:', error);
+        console.error("[Cushion] Error processing response:", error);
         // JSON 파싱 실패 시 원본 반환
         return clonedResponse;
       }
@@ -357,9 +360,9 @@ export class ShockAbsorber {
     data: any,
     originalResponse: Response
   ): Response {
-    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const jsonString = JSON.stringify(data);
 
-    return new Response(blob, {
+    return new Response(jsonString, {
       status: originalResponse.status,
       statusText: originalResponse.statusText,
       headers: originalResponse.headers,
@@ -416,7 +419,9 @@ export class PluginEcosystem implements CushionCore {
 
   addMapper(mapper: CustomMapper): void {
     // Generate unique name for mapper
-    const mapperName = `plugin_mapper_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const mapperName = `plugin_mapper_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
     this.absorptionEngine.addMapper(mapperName, mapper);
   }
 
@@ -428,8 +433,8 @@ export class PluginEcosystem implements CushionCore {
       try {
         return hook(result, mapping, context);
       } catch (error) {
-        console.error('[Cushion] Error in absorb hook:', error);
-        return result;
+        console.error("[Cushion] Error in absorb hook:", error);
+        return result; // Return the previous result and continue
       }
     }, data);
   }
@@ -442,7 +447,7 @@ export class PluginEcosystem implements CushionCore {
       try {
         hook(url, options);
       } catch (error) {
-        console.error('[Cushion] Error in request hook:', error);
+        console.error("[Cushion] Error in request hook:", error);
       }
     });
   }
@@ -455,10 +460,20 @@ export class PluginEcosystem implements CushionCore {
       try {
         return hook(url, result);
       } catch (error) {
-        console.error('[Cushion] Error in response hook:', error);
+        console.error("[Cushion] Error in response hook:", error);
         return result;
       }
     }, data);
+  }
+
+  /**
+   * 플러그인 생태계 초기화 (테스트용)
+   */
+  reset(): void {
+    this.plugins.clear();
+    this.absorbHooks = [];
+    this.requestHooks = [];
+    this.responseHooks = [];
   }
 }
 
@@ -501,7 +516,7 @@ export class Cushion {
    */
   setupCushion(urlPattern: string, rule: CushionRule | MappingConfig): void {
     const cushionRule: CushionRule =
-      'mapping' in rule ? (rule as CushionRule) : { mapping: rule };
+      "mapping" in rule ? (rule as CushionRule) : { mapping: rule };
 
     this.cushionManager.setCushion(urlPattern, cushionRule);
   }
@@ -548,6 +563,7 @@ export class Cushion {
    */
   reset(): void {
     this.cushionManager.clearAll();
+    this.pluginEcosystem.reset();
     this.deactivate();
   }
 }

@@ -3,8 +3,8 @@
 // "Manual absorption for one-off transformations"
 // ================================
 
-import { AbsorptionEngine } from './core.js';
-import type { AbsorbOptions, MappingConfig } from './types.js';
+import { AbsorptionEngine } from "./core.js";
+import type { AbsorbOptions, MappingConfig } from "./types.js";
 
 // Create a singleton absorption engine for manual use
 const engine = new AbsorptionEngine();
@@ -40,7 +40,7 @@ export function absorb<T = any>(
     return result;
   } catch (error) {
     if (options?.onError) {
-      return options.onError(error as Error, 'root') as T;
+      return options.onError(error as Error, "root") as T;
     }
     throw error;
   }
@@ -84,7 +84,7 @@ export function batchAbsorb<T = any>(
   options?: AbsorbOptions
 ): T[] {
   if (!Array.isArray(dataArray)) {
-    throw new TypeError('[Cushion] batchAbsorb expects an array');
+    throw new TypeError("[Cushion] batchAbsorb expects an array");
   }
 
   return dataArray.map((item) => absorb<T>(item, mapping, options));
@@ -154,7 +154,7 @@ export function createNestedMapping(
   const result: any = {};
 
   for (const [targetPath, sourcePath] of Object.entries(flatMapping)) {
-    const keys = targetPath.split('.');
+    const keys = targetPath.split(".");
     let current = result;
 
     for (let i = 0; i < keys.length - 1; i++) {
@@ -187,14 +187,14 @@ export function validateAbsorbed(
   data: any,
   expectedShape: Record<string, string>
 ): boolean {
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== "object") {
     return false;
   }
 
   for (const [key, expectedType] of Object.entries(expectedShape)) {
     const actualType = typeof data[key];
 
-    if (expectedType === 'array') {
+    if (expectedType === "array") {
       if (!Array.isArray(data[key])) {
         return false;
       }
@@ -235,7 +235,7 @@ export function createTypedAbsorber<T>(
     const absorbed = absorb<T>(data, mapping, options);
 
     if (!validateAbsorbed(absorbed, shape)) {
-      console.warn('[Cushion] Absorbed data does not match expected shape');
+      console.warn("[Cushion] Absorbed data does not match expected shape");
       return null;
     }
 
@@ -244,4 +244,4 @@ export function createTypedAbsorber<T>(
 }
 
 // Re-export types for convenience
-export type { MappingConfig, FieldMapping, AbsorbOptions } from './types.js';
+export type { MappingConfig, FieldMapping, AbsorbOptions } from "./types.js";

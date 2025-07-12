@@ -1,10 +1,10 @@
-import { createPlugin } from '../index';
-import type { MappingConfig } from '../types';
+import { createPlugin } from "../index";
+import type { MappingConfig } from "../types";
 
 export interface SchemaChangeEvent {
   url: string;
   fieldName: string;
-  changeType: 'missing' | 'type_changed' | 'new_field' | 'mapping_failed';
+  changeType: "missing" | "type_changed" | "new_field" | "mapping_failed";
   expectedType?: string;
   actualType?: string;
   oldValue?: any;
@@ -33,12 +33,15 @@ export interface SchemaMetrics {
   failedTransformations: number;
   schemaChanges: SchemaChangeEvent[];
   successRate: number;
-  urlMetrics: Record<string, {
-    total: number;
-    successful: number;
-    failed: number;
-    lastAccess: Date;
-  }>;
+  urlMetrics: Record<
+    string,
+    {
+      total: number;
+      successful: number;
+      failed: number;
+      lastAccess: Date;
+    }
+  >;
 }
 
 class SchemaMonitor {
@@ -67,24 +70,24 @@ class SchemaMonitor {
     };
   }
 
-  private shouldMonitor(url: string): boolean {
+  public shouldMonitor(url: string): boolean {
     if (this.config.monitorUrls.length === 0) return true;
-    return this.config.monitorUrls.some(pattern => {
-      const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    return this.config.monitorUrls.some((pattern) => {
+      const regex = new RegExp(pattern.replace(/\*/g, ".*"));
       return regex.test(url);
     });
   }
 
   private getFieldType(value: any): string {
-    if (value === null) return 'null';
-    if (Array.isArray(value)) return 'array';
+    if (value === null) return "null";
+    if (Array.isArray(value)) return "array";
     return typeof value;
   }
 
   private recordSchemaChange(event: SchemaChangeEvent): void {
     // Add to history
     this.metrics.schemaChanges.push(event);
-    
+
     // Maintain history size limit
     if (this.metrics.schemaChanges.length > this.config.maxHistorySize) {
       this.metrics.schemaChanges.shift();
@@ -96,7 +99,7 @@ class SchemaMonitor {
       console.warn(message, {
         url: event.url,
         field: event.fieldName,
-        details: event
+        details: event,
       });
     }
 
@@ -116,29 +119,33 @@ class SchemaMonitor {
         this.recordSchemaChange({
           url,
           fieldName,
-          changeType: 'missing',
+          changeType: "missing",
           timestamp: new Date(),
         });
       }
     }
 
     // Track new fields in original data
-    if (this.config.trackNewFields && originalData && typeof originalData === 'object') {
+    if (
+      this.config.trackNewFields &&
+      originalData &&
+      typeof originalData === "object"
+    ) {
       const currentFields = new Set(Object.keys(originalData));
       const knownFields = this.knownFields.get(url) || new Set();
-      
+
       for (const field of currentFields) {
         if (!knownFields.has(field)) {
           this.recordSchemaChange({
             url,
             fieldName: field,
-            changeType: 'new_field',
+            changeType: "new_field",
             newValue: originalData[field],
             timestamp: new Date(),
           });
         }
       }
-      
+
       this.knownFields.set(url, currentFields);
     }
 
@@ -150,12 +157,12 @@ class SchemaMonitor {
           if (value !== undefined && knownSchema[fieldName] !== undefined) {
             const currentType = this.getFieldType(value);
             const knownType = this.getFieldType(knownSchema[fieldName]);
-            
+
             if (currentType !== knownType) {
               this.recordSchemaChange({
                 url,
                 fieldName,
-                changeType: 'type_changed',
+                changeType: "type_changed",
                 expectedType: knownType,
                 actualType: currentType,
                 oldValue: knownSchema[fieldName],
@@ -166,23 +173,25 @@ class SchemaMonitor {
           }
         }
       }
-      
+
       // Update known schema
       this.knownSchemas.set(url, { ...transformedData });
     }
   }
 
-  private updateMetrics(url: string, success: boolean): void {
+  public updateMetrics(url: string, success: boolean): void {
     this.metrics.totalTransformations++;
-    
+
     if (success) {
       this.metrics.successfulTransformations++;
     } else {
       this.metrics.failedTransformations++;
     }
 
-    this.metrics.successRate = 
-      (this.metrics.successfulTransformations / this.metrics.totalTransformations) * 100;
+    this.metrics.successRate =
+      (this.metrics.successfulTransformations /
+        this.metrics.totalTransformations) *
+      100;
 
     // Update URL-specific metrics
     if (!this.metrics.urlMetrics[url]) {
@@ -197,7 +206,7 @@ class SchemaMonitor {
     const urlMetric = this.metrics.urlMetrics[url];
     urlMetric.total++;
     urlMetric.lastAccess = new Date();
-    
+
     if (success) {
       urlMetric.successful++;
     } else {
@@ -209,34 +218,42 @@ class SchemaMonitor {
     originalData: any,
     transformedData: any,
     mapping: MappingConfig,
-    context: { url: string }
+    context: { url: string } | null
   ): any {
-    if (!this.shouldMonitor(context.url)) {
+    if (!context || !this.shouldMonitor(context.url)) {
       return transformedData;
     }
 
     try {
       // Analyze for schema changes
-      this.analyzeFieldChanges(context.url, originalData, transformedData, mapping);
-      
+      this.analyzeFieldChanges(
+        context.url,
+        originalData,
+        transformedData,
+        mapping
+      );
+
       // Update metrics
       this.updateMetrics(context.url, true);
-      
+
       return transformedData;
     } catch (error) {
       this.recordSchemaChange({
         url: context.url,
-        fieldName: 'unknown',
-        changeType: 'mapping_failed',
+        fieldName: "unknown",
+        changeType: "mapping_failed",
         timestamp: new Date(),
       });
-      
+
       this.updateMetrics(context.url, false);
-      
+
       if (this.config.enableLogging) {
-        console.error('[Cushion Schema Monitor] Error during monitoring:', error);
+        console.error(
+          "[Cushion Schema Monitor] Error during monitoring:",
+          error
+        );
       }
-      
+
       return transformedData;
     }
   }
@@ -247,7 +264,7 @@ class SchemaMonitor {
 
   public getSchemaChanges(url?: string): SchemaChangeEvent[] {
     if (!url) return this.metrics.schemaChanges;
-    return this.metrics.schemaChanges.filter(event => event.url === url);
+    return this.metrics.schemaChanges.filter((event) => event.url === url);
   }
 
   public clearHistory(): void {
@@ -273,28 +290,55 @@ class SchemaMonitor {
 export const createSchemaMonitorPlugin = (config: SchemaMonitorConfig = {}) => {
   const monitor = new SchemaMonitor(config);
 
-  return createPlugin('schema-monitor', (core) => {
-    // Monitor absorb operations
-    core.onAbsorb((data, mapping, context) => {
-      return monitor.monitorAbsorption(context.originalData || data, data, mapping, context);
-    });
+  return {
+    name: "schema-monitor",
+    install: (core: any) => {
+      // Monitor absorb operations
+      core.onAbsorb((data: any, mapping: MappingConfig, context: any) => {
+        return monitor.monitorAbsorption(
+          context?.originalData || data,
+          data,
+          mapping,
+          context
+        );
+      });
 
-    // Monitor response processing
-    core.onResponse((url, data) => {
-      if (monitor.shouldMonitor(url)) {
-        monitor.updateMetrics(url, true);
-      }
-      return data;
-    });
+      // Monitor response processing
+      core.onResponse((url: string, data: any) => {
+        if (monitor.shouldMonitor(url)) {
+          monitor.updateMetrics(url, true);
+        }
+        return data;
+      });
+    },
+    setup: (core: any) => {
+      // Monitor absorb operations
+      core.onAbsorb((data: any, mapping: MappingConfig, context: any) => {
+        return monitor.monitorAbsorption(
+          context?.originalData || data,
+          data,
+          mapping,
+          context
+        );
+      });
 
-    // Expose monitoring utilities
-    return {
-      getMetrics: () => monitor.getMetrics(),
-      getSchemaChanges: (url?: string) => monitor.getSchemaChanges(url),
-      clearHistory: () => monitor.clearHistory(),
-      exportReport: () => monitor.exportReport(),
-    };
-  });
+      // Monitor response processing
+      core.onResponse((url: string, data: any) => {
+        if (monitor.shouldMonitor(url)) {
+          monitor.updateMetrics(url, true);
+        }
+        return data;
+      });
+
+      // Expose monitoring utilities
+      return {
+        getMetrics: () => monitor.getMetrics(),
+        getSchemaChanges: (url?: string) => monitor.getSchemaChanges(url),
+        clearHistory: () => monitor.clearHistory(),
+        exportReport: () => monitor.exportReport(),
+      };
+    },
+  };
 };
 
 export default createSchemaMonitorPlugin;

@@ -42,7 +42,7 @@ export interface SchemaAlert {
 
 export class SchemaAlertSystem {
   private config: Required<AlertConfig>;
-  private alertHistory: SchemaAlert[] = new Map();
+  private alertHistory: Map<string, SchemaAlert> = new Map();
   private urlFailureCount: Map<string, number> = new Map();
   private lastAlertTime: Map<string, Date> = new Map();
   private readonly ALERT_COOLDOWN = 5 * 60 * 1000; // 5 minutes
@@ -168,7 +168,7 @@ export class SchemaAlertSystem {
     };
   }
 
-  private async processAlert(alert: SchemaAlert): Promise<void> {
+  public async processAlert(alert: SchemaAlert): Promise<void> {
     const alertKey = `${alert.type}_${alert.url}`;
     
     if (!this.shouldAlert(alertKey)) {

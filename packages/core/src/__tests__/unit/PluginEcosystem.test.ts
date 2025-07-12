@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { PluginEcosystem, AbsorptionEngine } from '../../core';
-import type { Plugin, CushionCore } from '../../types';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { PluginEcosystem, AbsorptionEngine } from "../../core";
+import type { Plugin, CushionCore } from "../../types";
 
-describe('PluginEcosystem', () => {
+describe("PluginEcosystem", () => {
   let ecosystem: PluginEcosystem;
   let absorptionEngine: AbsorptionEngine;
 
@@ -11,11 +11,11 @@ describe('PluginEcosystem', () => {
     ecosystem = new PluginEcosystem(absorptionEngine);
   });
 
-  describe('Plugin Registration', () => {
-    it('should register and install plugins', () => {
+  describe("Plugin Registration", () => {
+    it("should register and install plugins", () => {
       const installFn = vi.fn();
       const plugin: Plugin = {
-        name: 'test-plugin',
+        name: "test-plugin",
         install: installFn,
       };
 
@@ -25,11 +25,13 @@ describe('PluginEcosystem', () => {
       expect(installFn).toHaveBeenCalledOnce();
     });
 
-    it('should prevent duplicate plugin registration', () => {
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    it("should prevent duplicate plugin registration", () => {
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
       const installFn = vi.fn();
       const plugin: Plugin = {
-        name: 'test-plugin',
+        name: "test-plugin",
         install: installFn,
       };
 
@@ -44,40 +46,46 @@ describe('PluginEcosystem', () => {
       consoleWarnSpy.mockRestore();
     });
 
-    it('should remove plugins', () => {
+    it("should remove plugins", () => {
       const plugin: Plugin = {
-        name: 'test-plugin',
+        name: "test-plugin",
         install: vi.fn(),
       };
 
       ecosystem.use(plugin);
-      ecosystem.remove('test-plugin');
+      ecosystem.remove("test-plugin");
 
       // 다시 등록 시도하면 경고 없이 설치됨
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
       ecosystem.use(plugin);
       expect(consoleWarnSpy).not.toHaveBeenCalled();
       consoleWarnSpy.mockRestore();
     });
   });
 
-  describe('Hook System', () => {
-    describe('Absorb Hooks', () => {
-      it('should register and execute absorb hooks', () => {
+  describe("Hook System", () => {
+    describe("Absorb Hooks", () => {
+      it("should register and execute absorb hooks", () => {
         const hook = vi.fn((data) => ({ ...data, hooked: true }));
         ecosystem.onAbsorb(hook);
 
-        const inputData = { name: '김개발' };
-        const mapping = { name: 'user_name' };
-        const context = { url: '/api/user' };
+        const inputData = { name: "김개발" };
+        const mapping = { name: "user_name" };
+        const context = { url: "/api/user" };
 
-        const result = ecosystem.executeAbsorbHooks(inputData, mapping, context);
+        const result = ecosystem.executeAbsorbHooks(
+          inputData,
+          mapping,
+          context
+        );
 
         expect(hook).toHaveBeenCalledWith(inputData, mapping, context);
-        expect(result).toEqual({ name: '김개발', hooked: true });
+        expect(result).toEqual({ name: "김개발", hooked: true });
       });
 
-      it('should execute multiple absorb hooks in order', () => {
+      it("should execute multiple absorb hooks in order", () => {
         const hook1 = vi.fn((data) => ({ ...data, step1: true }));
         const hook2 = vi.fn((data) => ({ ...data, step2: true }));
         const hook3 = vi.fn((data) => ({ ...data, step3: true }));
@@ -95,10 +103,12 @@ describe('PluginEcosystem', () => {
         expect(hook3).toHaveBeenCalled();
       });
 
-      it('should handle errors in absorb hooks gracefully', () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      it("should handle errors in absorb hooks gracefully", () => {
+        const consoleErrorSpy = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
         const errorHook = vi.fn(() => {
-          throw new Error('Hook error');
+          throw new Error("Hook error");
         });
         const normalHook = vi.fn((data) => ({ ...data, success: true }));
 
@@ -109,50 +119,52 @@ describe('PluginEcosystem', () => {
 
         expect(result).toEqual({ original: true, success: true });
         expect(consoleErrorSpy).toHaveBeenCalledWith(
-          '[Cushion] Error in absorb hook:',
+          "[Cushion] Error in absorb hook:",
           expect.any(Error)
         );
         consoleErrorSpy.mockRestore();
       });
     });
 
-    describe('Request Hooks', () => {
-      it('should register and execute request hooks', () => {
+    describe("Request Hooks", () => {
+      it("should register and execute request hooks", () => {
         const hook = vi.fn();
         ecosystem.onRequest(hook);
 
-        const url = '/api/user';
-        const options = { method: 'GET', headers: {} };
+        const url = "/api/user";
+        const options = { method: "GET", headers: {} };
 
         ecosystem.executeRequestHooks(url, options);
 
         expect(hook).toHaveBeenCalledWith(url, options);
       });
 
-      it('should execute multiple request hooks', () => {
+      it("should execute multiple request hooks", () => {
         const hook1 = vi.fn();
         const hook2 = vi.fn();
 
         ecosystem.onRequest(hook1);
         ecosystem.onRequest(hook2);
 
-        ecosystem.executeRequestHooks('/api/user', {});
+        ecosystem.executeRequestHooks("/api/user", {});
 
         expect(hook1).toHaveBeenCalled();
         expect(hook2).toHaveBeenCalled();
       });
 
-      it('should handle errors in request hooks gracefully', () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      it("should handle errors in request hooks gracefully", () => {
+        const consoleErrorSpy = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
         const errorHook = vi.fn(() => {
-          throw new Error('Request hook error');
+          throw new Error("Request hook error");
         });
         const normalHook = vi.fn();
 
         ecosystem.onRequest(errorHook);
         ecosystem.onRequest(normalHook);
 
-        ecosystem.executeRequestHooks('/api/user', {});
+        ecosystem.executeRequestHooks("/api/user", {});
 
         expect(normalHook).toHaveBeenCalled();
         expect(consoleErrorSpy).toHaveBeenCalled();
@@ -160,43 +172,50 @@ describe('PluginEcosystem', () => {
       });
     });
 
-    describe('Response Hooks', () => {
-      it('should register and execute response hooks', () => {
+    describe("Response Hooks", () => {
+      it("should register and execute response hooks", () => {
         const hook = vi.fn((url, data) => ({ ...data, processed: true }));
         ecosystem.onResponse(hook);
 
-        const url = '/api/user';
-        const data = { name: '김개발' };
+        const url = "/api/user";
+        const data = { name: "김개발" };
 
         const result = ecosystem.executeResponseHooks(url, data);
 
         expect(hook).toHaveBeenCalledWith(url, data);
-        expect(result).toEqual({ name: '김개발', processed: true });
+        expect(result).toEqual({ name: "김개발", processed: true });
       });
 
-      it('should chain response hooks', () => {
+      it("should chain response hooks", () => {
         const hook1 = vi.fn((url, data) => ({ ...data, version: 1 }));
-        const hook2 = vi.fn((url, data) => ({ ...data, version: data.version + 1 }));
+        const hook2 = vi.fn((url, data) => ({
+          ...data,
+          version: data.version + 1,
+        }));
 
         ecosystem.onResponse(hook1);
         ecosystem.onResponse(hook2);
 
-        const result = ecosystem.executeResponseHooks('/api/user', {});
+        const result = ecosystem.executeResponseHooks("/api/user", {});
 
         expect(result).toEqual({ version: 2 });
       });
 
-      it('should handle errors in response hooks', () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      it("should handle errors in response hooks", () => {
+        const consoleErrorSpy = vi
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
         const errorHook = vi.fn(() => {
-          throw new Error('Response hook error');
+          throw new Error("Response hook error");
         });
         const normalHook = vi.fn((url, data) => ({ ...data, safe: true }));
 
         ecosystem.onResponse(errorHook);
         ecosystem.onResponse(normalHook);
 
-        const result = ecosystem.executeResponseHooks('/api/user', { original: true });
+        const result = ecosystem.executeResponseHooks("/api/user", {
+          original: true,
+        });
 
         expect(result).toEqual({ original: true, safe: true });
         consoleErrorSpy.mockRestore();
@@ -204,9 +223,9 @@ describe('PluginEcosystem', () => {
     });
   });
 
-  describe('Custom Mappers', () => {
-    it('should add custom mappers to absorption engine', () => {
-      const mapper = vi.fn((data, path) => 'custom');
+  describe("Custom Mappers", () => {
+    it("should add custom mappers to absorption engine", () => {
+      const mapper = vi.fn((data, path) => "custom");
       ecosystem.addMapper(mapper);
 
       // Mapper should be added with a unique name
@@ -216,15 +235,15 @@ describe('PluginEcosystem', () => {
     });
   });
 
-  describe('Real-world Plugin Scenarios', () => {
-    it('should implement a logging plugin', () => {
+  describe("Real-world Plugin Scenarios", () => {
+    it("should implement a logging plugin", () => {
       const logs: string[] = [];
-      
+
       const loggingPlugin: Plugin = {
-        name: 'logger',
+        name: "logger",
         install(core: CushionCore) {
           core.onRequest((url, options) => {
-            logs.push(`[Request] ${options.method || 'GET'} ${url}`);
+            logs.push(`[Request] ${options.method || "GET"} ${url}`);
           });
 
           core.onResponse((url, data) => {
@@ -242,51 +261,51 @@ describe('PluginEcosystem', () => {
       ecosystem.use(loggingPlugin);
 
       // Simulate request
-      ecosystem.executeRequestHooks('/api/user', { method: 'POST' });
-      
+      ecosystem.executeRequestHooks("/api/user", { method: "POST" });
+
       // Simulate response
-      ecosystem.executeResponseHooks('/api/user', { name: '김개발' });
-      
+      ecosystem.executeResponseHooks("/api/user", { name: "김개발" });
+
       // Simulate absorb
       ecosystem.executeAbsorbHooks(
-        { name: '김개발' },
-        { name: 'user_name' },
-        { url: '/api/user' }
+        { name: "김개발" },
+        { name: "user_name" },
+        { url: "/api/user" }
       );
 
       expect(logs).toEqual([
-        '[Request] POST /api/user',
+        "[Request] POST /api/user",
         '[Response] /api/user - {"name":"김개발"}',
-        '[Absorb] /api/user - Applied mapping',
+        "[Absorb] /api/user - Applied mapping",
       ]);
     });
 
-    it('should implement a validation plugin (like Zod)', () => {
+    it("should implement a validation plugin (like Zod)", () => {
       interface Schema {
         parse: (data: any) => any;
       }
 
       const userSchema: Schema = {
         parse: (data) => {
-          if (!data.name || typeof data.name !== 'string') {
-            throw new Error('Invalid name');
+          if (!data.name || typeof data.name !== "string") {
+            throw new Error("Invalid name");
           }
-          if (!data.email || !data.email.includes('@')) {
-            throw new Error('Invalid email');
+          if (!data.email || !data.email.includes("@")) {
+            throw new Error("Invalid email");
           }
           return data;
         },
       };
 
       const validationPlugin: Plugin = {
-        name: 'validation',
+        name: "validation",
         install(core: CushionCore) {
           core.onAbsorb((data, mapping, context) => {
             if ((context as any).schema) {
               try {
                 return (context as any).schema.parse(data);
               } catch (error) {
-                console.error('[Validation] Failed:', error);
+                console.error("[Validation] Failed:", error);
                 throw error;
               }
             }
@@ -298,26 +317,41 @@ describe('PluginEcosystem', () => {
       ecosystem.use(validationPlugin);
 
       // Valid data
-      const validData = { name: '김개발', email: 'dev@example.com' };
+      const validData = { name: "김개발", email: "dev@example.com" };
       const validResult = ecosystem.executeAbsorbHooks(
         validData,
         {},
-        { url: '/api/user', schema: userSchema }
+        { url: "/api/user", schema: userSchema }
       );
       expect(validResult).toEqual(validData);
 
       // Invalid data
-      const invalidData = { name: '김개발', email: 'invalid-email' };
-      expect(() =>
-        ecosystem.executeAbsorbHooks(invalidData, {}, { url: '/api/user', schema: userSchema })
-      ).toThrow('Invalid email');
+      const invalidData = { name: "김개발", email: "invalid-email" };
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      const result = ecosystem.executeAbsorbHooks(
+        invalidData,
+        {},
+        { url: "/api/user", schema: userSchema }
+      );
+
+      // Should return original data since error was caught
+      expect(result).toEqual(invalidData);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[Cushion] Error in absorb hook:",
+        expect.any(Error)
+      );
+
+      consoleErrorSpy.mockRestore();
     });
 
-    it('should implement a caching plugin', () => {
+    it("should implement a caching plugin", () => {
       const cache = new Map<string, any>();
 
       const cachingPlugin: Plugin = {
-        name: 'cache',
+        name: "cache",
         install(core: CushionCore) {
           core.onRequest((url) => {
             if (cache.has(url)) {
@@ -336,22 +370,24 @@ describe('PluginEcosystem', () => {
       ecosystem.use(cachingPlugin);
 
       // First request
-      ecosystem.executeResponseHooks('/api/user', { name: '김개발' });
-      expect(cache.has('/api/user')).toBe(true);
-      expect(cache.get('/api/user')).toEqual({ name: '김개발' });
+      ecosystem.executeResponseHooks("/api/user", { name: "김개발" });
+      expect(cache.has("/api/user")).toBe(true);
+      expect(cache.get("/api/user")).toEqual({ name: "김개발" });
 
       // Second request (cache hit)
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      ecosystem.executeRequestHooks('/api/user', {});
-      expect(consoleLogSpy).toHaveBeenCalledWith('[Cache] Hit: /api/user');
+      const consoleLogSpy = vi
+        .spyOn(console, "log")
+        .mockImplementation(() => {});
+      ecosystem.executeRequestHooks("/api/user", {});
+      expect(consoleLogSpy).toHaveBeenCalledWith("[Cache] Hit: /api/user");
       consoleLogSpy.mockRestore();
     });
 
-    it('should implement a retry plugin', () => {
+    it("should implement a retry plugin", () => {
       let attemptCount = 0;
 
       const retryPlugin: Plugin = {
-        name: 'retry',
+        name: "retry",
         install(core: CushionCore) {
           core.onResponse((url, data) => {
             if ((data as any).error && attemptCount < 3) {
@@ -367,9 +403,9 @@ describe('PluginEcosystem', () => {
 
       ecosystem.use(retryPlugin);
 
-      const errorResponse = { error: 'Network error' };
-      const result = ecosystem.executeResponseHooks('/api/user', errorResponse);
-      expect(result).toEqual({ error: 'Network error', retryAttempt: 1 });
+      const errorResponse = { error: "Network error" };
+      const result = ecosystem.executeResponseHooks("/api/user", errorResponse);
+      expect(result).toEqual({ error: "Network error", retryAttempt: 1 });
     });
   });
 });
